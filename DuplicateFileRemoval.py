@@ -1,9 +1,11 @@
-import os,hashlib,time;
+import os,hashlib,time,urllib.request,smtplib;
+from email import encoders;
+from email.mime.text import MIMEText;
+from email.mime.base import MIMEBase;
+from email.mime.multipart import MIMEMultipart;
+
 from sys import *;
-
-
-
-
+import sched;
 
 def findDup(path):
 	flag = os.path.isabs(path);
@@ -41,29 +43,33 @@ def hashfile(path,blocksize = 1024):
     return hasher.hexdigest();
 
 
-def printResults(dict1):
-	results = list(filter(lambda x: len(x) > 1,dict1.values()));
 
-	if len(results)> 0:
-		print("Dups Found");
-		print("Dups Files are: ");
-		count=0
+def deleteFiles(dict1):
+	results = list(filter(lambda x : len(x) > 1,dict1.values()));
+
+	icnt = 0;
+
+	if len(results) >0:
+		mylog = open("MyLog.txt",'r+');
 		for result in results:
 			for subresult in result:
-				print("\t\t %s" %subresult);
-				count+=1
-				print(count)
+				icnt+=1;
+				if icnt>=2:
+					mylog.write(subresult+'\n')
+					os.remove(subresult);
+			icnt = 0;
+	
 	else:
-		print("No dups found");
-
-
+		print("No dups Found");
+	result=[];
 
 def main():
 	try:
 		arr = {};
 		startTime = time.time();
 		arr = findDup(argv[1]);
-		printResults(arr);
+		deleteFiles(arr);
+
 
 		endTime = time.time();
 		print("Took %s seconds to evaluate" %(endTime - startTime));
@@ -72,11 +78,6 @@ def main():
 		print("Error: Invalid Datatype of Input",VE);
 	except Exception as E:
 		print("Error: Invalid Input",E);
-
-
-
-
-
 
 if __name__ == "__main__":
 	main();
